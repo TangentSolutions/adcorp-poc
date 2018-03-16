@@ -11,6 +11,14 @@
       "name": "$return",
       "type": "http",
       "direction": "out"
+    },
+    {
+      "name": "outMessage",
+      "topicName": "logs",
+      "connection": "ServiceBusConnection",
+      "accessRights": "send",
+      "type": "serviceBusTopic",
+      "direction": "out"
     }
   ]
 }

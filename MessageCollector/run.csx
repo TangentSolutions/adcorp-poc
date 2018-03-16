@@ -17,8 +17,7 @@ public class Response {
     public Message Message { get; set; } 
 }
 
-
-public static IActionResult Run(HttpRequest req, TraceWriter log)
+public static IActionResult Run(HttpRequest req, TraceWriter log, out string outMessage)
 {
     string requestBody = new StreamReader(req.Body).ReadToEnd();
     dynamic data = JsonConvert.DeserializeObject(requestBody);
@@ -43,13 +42,13 @@ public static IActionResult Run(HttpRequest req, TraceWriter log)
 
     if (errors.Count == 0) {
         Message message = new Message() { Content = messageBody, Name = name, CellPhone = cellPhone, UUID = System.Guid.NewGuid().ToString()};
-        // return JsonConvert.SerializeObject(new Response() { Message = message, Return = new OkObjectResult("") });
-        string returnValue = JsonConvert.SerializeObject(new Response() { Message = message, Return = message });
+        outMessage = (string)JsonConvert.SerializeObject(message);
+        
+        string returnValue = JsonConvert.SerializeObject(new Response() { Message = message, Return = message });        
         return (ActionResult)new OkObjectResult($"{returnValue}");
     } else {
-        errorString = String.Join(", ", errors.ToArray());
-        string returnValue = JsonConvert.SerializeObject(new Response() { Return = errorString });
-        // return JsonConvert.SerializeObject(new Response() { Message = message, Return = new BadRequestObjectResult($"{errorString}") });
-        return new BadRequestObjectResult($"Missing required parameters: {errorString}");
+        outMessage = null;
+
+        return new BadRequestObjectResult($"Missing required parameters: {String.Join(", ", errors.ToArray())}");
     }
 }
