@@ -1,11 +1,14 @@
 {
-  "disabled": false,
   "bindings": [
     {
       "authLevel": "function",
       "name": "req",
       "type": "httpTrigger",
-      "direction": "in"
+      "direction": "in",
+      "methods": [
+        "get",
+        "post"
+      ]
     },
     {
       "name": "$return",
@@ -13,12 +16,13 @@
       "direction": "out"
     },
     {
-      "name": "outMessage",
+      "type": "serviceBus",
+      "connection": "adcorp-poc_RootManageSharedAccessKey_SERVICEBUS",
+      "name": "myoutput",
       "topicName": "logs",
-      "connection": "ServiceBusConnection",
-      "accessRights": "send",
-      "type": "serviceBusTopic",
+      "accessRights": "Send",
       "direction": "out"
     }
-  ]
+  ],
+  "disabled": false
 }

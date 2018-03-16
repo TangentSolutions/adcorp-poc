@@ -1,54 +1,25 @@
-#r "Newtonsoft.Json"
-
 using System.Net;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
-using Newtonsoft.Json;
 
-public class Message {
-    public String Name { get; set; }
-    public String Content { get; set; }
-    public String CellPhone { get; set; }
-    public String UUID { get; set; }
-}
-
-public class Response {
-    public Object Return { get; set; }
-    public Message Message { get; set; } 
-}
-
-public static IActionResult Run(HttpRequest req, TraceWriter log, out string outMessage)
+public static async Task<HttpResponseMessage> Run(HttpRequestMessage req,ICollector<string> myoutput ,TraceWriter log)
 {
-    string requestBody = new StreamReader(req.Body).ReadToEnd();
-    dynamic data = JsonConvert.DeserializeObject(requestBody);
-    string name = data?.name;
-    string cellPhone = data?.cellPhone;
-    string messageBody = data?.message;
+    log.Info("C# HTTP trigger function processed a request.");
 
-    List<String> errors = new List<String>();
-    string errorString = "";
+    // parse query parameter
+    string name = req.GetQueryNameValuePairs()
+        .FirstOrDefault(q => string.Compare(q.Key, "name", true) == 0)
+        .Value;
 
-    if (name == null) {
-        errors.Add("name");
+    if (name == null)
+    {
+        // Get request body
+        dynamic data = await req.Content.ReadAsAsync<object>();
+        name = data?.name;
     }
 
-    if (cellPhone == null) {
-        errors.Add("cellPhone");
-    }
+    myoutput.Add("This is going to be " + name);
 
-    if (messageBody == null) {
-        errors.Add("message");
-    }
+    return name == null
+        ? req.CreateResponse(HttpStatusCode.BadRequest, "Please pass a name on the query string or in the request body")
+        : req.CreateResponse(HttpStatusCode.OK, "Hello " + name)
 
-    if (errors.Count == 0) {
-        Message message = new Message() { Content = messageBody, Name = name, CellPhone = cellPhone, UUID = System.Guid.NewGuid().ToString()};
-        outMessage = (string)JsonConvert.SerializeObject(message);
-        
-        string returnValue = JsonConvert.SerializeObject(new Response() { Message = message, Return = message });        
-        return (ActionResult)new OkObjectResult($"{returnValue}");
-    } else {
-        outMessage = null;
-
-        return new BadRequestObjectResult($"Missing required parameters: {String.Join(", ", errors.ToArray())}");
-    }
 }
